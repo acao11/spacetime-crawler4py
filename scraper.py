@@ -1,6 +1,8 @@
 import re
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
+from utils.stats import tracker
+from utils.tokenizer import tokenize
 
 Allowed_Domains = ["ics.uci.edu", "cs.uci.edu", "informatics.uci.edu", "stat.uci.edu"]
 
@@ -14,6 +16,14 @@ def extract_next_links(url, resp):
         return []
     try:
         soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        
+        # --- Update Stats ---
+        # Extract text content for tokenization
+        text = soup.get_text()
+        tokens = tokenize(text)
+        tracker.update_stats(url, tokens)
+        
+        # --- Extract Links ---
         links = []
         for tag in soup.find_all("a", href=True):
             href = tag["href"].strip()
@@ -51,19 +61,17 @@ def is_valid(url):
             + r"|war|conf|sql|java|php|py|c|cpp|h|sh)$", parsed.path.lower()):
             return False
 
-        # --- Crawler Trap Check ---
+        # Crawler Trap Check
 
-        # 1. Wiki/Trac Specific Traps (like grape.ics.uci.edu)
-        # /attachment/ contains junk files (WAR, CONF, etc.)
-        # /browser/ is an infinite source code browser
-        # /timeline/ is an infinite history list
-        # We also block common auth/login paths to avoid getting stuck on login screens.
-        if any(trap in parsed.path.lower() for trap in ["/attachment/", "/browser/", "/timeline/", "/action/", "/login", "/logout", "/auth", "/signup"]):
+        # Wiki Trap - More robust check
+        path_lower = parsed.path.lower()
+        traps = ["/attachment/", "/browser/", "/timeline", "/action/", "/login", "/logout", "/auth", "/signup"]
+        if any(trap in path_lower for trap in traps):
             return False
 
-        # 2. Repeating Directory Pattern
-        # Some traps look like /news/news/news/news/... 
-        # We split the path by '/' and check if any folder name appears more than twice.
+        #  Repeating Directory Pattern
+        #/news/news/news/news/
+
         path_segments = [seg for seg in parsed.path.split('/') if seg]
         if len(path_segments) > 0:
             from collections import Counter
@@ -71,19 +79,17 @@ def is_valid(url):
             if any(count > 2 for count in counts.values()):
                 return False
 
-        # 3. Dangerous Query Parameters (Wiki/Calendar Traps)
-        # These parameters often create infinite variations of the same content.
-        # 'do' (wiki actions), 'rev' (history), 'replytocom' (comment loops)
-        # 'idx' is a DokuWiki index trap.
-        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx"}
+        # 2.Wiki/Calendar Traps
+     
+        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx", "from"}
         query_parts = parsed.query.lower().split('&')
         for part in query_parts:
             param_name = part.split('=')[0]
             if param_name in trap_params:
                 return False
 
-        # 4. Path Length Heuristic
-        # Extremely long paths are rarely legitimate content and often signify a trap.
+        # 3. Path Length Check
+
         if len(url) > 200:
             return False
 

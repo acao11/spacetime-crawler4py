@@ -1,42 +1,29 @@
-import sys
+import re
+from collections import Counter
 
-def tokenize(text_file_path: str) -> list:
-    tokens = []
-    try:
-        with open(text_file_path, 'r', encoding='utf-8', errors='ignore') as f:
-            for line in f:
-                current_token = []
-                for char in line + " ":
-                    if char.isalnum() and char.isascii():
-                        current_token.append(char.lower())
-                    else:
-                        if current_token:
-                            tokens.append(''.join(current_token))
-                            current_token = []
-    except FileNotFoundError:
-        print(f"Error: file '{text_file_path}' not found.")
-    except IOError:
-        print(f"Error: could not read file '{text_file_path}'.")
+# Standard English stop words
+STOP_WORDS = {
+    "a", "about", "above", "after", "again", "against", "all", "am", "an", "and", "any", "are", "as", "at", 
+    "be", "because", "been", "before", "being", "below", "between", "both", "but", "by", "can", "could", 
+    "did", "do", "does", "doing", "down", "during", "each", "few", "for", "from", "further", "had", "has", 
+    "have", "having", "he", "her", "here", "hers", "herself", "him", "himself", "his", "how", "i", "if", 
+    "in", "into", "is", "it", "its", "itself", "just", "me", "more", "most", "my", "myself", "no", "nor", 
+    "not", "of", "off", "on", "once", "only", "or", "other", "ought", "our", "ours", "ourselves", "out", 
+    "over", "own", "same", "she", "should", "so", "some", "such", "than", "that", "the", "their", "theirs", 
+    "them", "themselves", "then", "there", "these", "they", "this", "those", "through", "to", "too", 
+    "under", "until", "up", "very", "was", "we", "were", "what", "when", "where", "which", "while", "who", 
+    "whom", "why", "with", "would", "you", "your", "yours", "yourself", "yourselves"
+}
 
-    return tokens
+def tokenize(text: str) -> list:
+    """
+    Tokenizes a string into a list of alphanumeric tokens.
+    Filters out tokens that are shorter than 2 characters (optional but usually helpful).
+    """
+    # Use regex to find all alphanumeric sequences
+    tokens = re.findall(r'[a-zA-Z0-9]+', text.lower())
+    # Filter for ASCII and non-stop words
+    return [t for t in tokens if len(t) > 1 and t not in STOP_WORDS]
 
 def computeWordFrequencies(tokens: list) -> dict:
-    frequencies = {}
-    for token in tokens:
-        if token in frequencies:
-            frequencies[token] += 1
-        else:
-            frequencies[token] = 1
-    return frequencies
-
-def print_frequencies(frequencies: dict) -> None:
-    sorted_items = sorted(frequencies.items(), key=lambda x: (-x[1], x[0]))
-    for token, count in sorted_items:
-        print(f"{token} > {count}")
-
-if __name__ == '__main__':
-    file_path = sys.argv[1]
-
-    tokens = tokenize(file_path)
-    frequencies = computeWordFrequencies(tokens)
-    print_frequencies(frequencies)
+    return dict(Counter(tokens))
