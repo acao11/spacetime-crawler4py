@@ -85,7 +85,7 @@ def is_valid(url):
         # These parameters often create infinite variations of the same content.
         # 'do' (wiki actions), 'rev' (history), 'replytocom' (comment loops)
         # 'idx' is a DokuWiki index trap.
-        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx"}
+        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx", "c", "o"}
         query_parts = parsed.query.lower().split('&')
         for part in query_parts:
             param_name = part.split('=')[0]
