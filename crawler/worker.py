@@ -5,7 +5,7 @@ from utils.download import download
 from utils import get_logger
 import scraper
 import time
-
+from urllib.parse import urlparse
 
 class Worker(Thread):
     def __init__(self, worker_id, config, frontier):
@@ -23,6 +23,31 @@ class Worker(Thread):
             if not tbd_url:
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break
+            
+            # Domain-Specific Politeness Logic
+            parsed = urlparse(tbd_url)
+            domain = parsed.netloc
+            
+            # Use the frontier's lock to coordinate domain access
+            with self.frontier.lock:
+                if not hasattr(self.frontier, 'last_visit'):
+                    self.frontier.last_visit = {}
+                
+                last_time = self.frontier.last_visit.get(domain, 0)
+                curr_time = time.time()
+                time_since_last = curr_time - last_time
+                
+                wait_time = 0
+                if time_since_last < self.config.time_delay:
+                    wait_time = self.config.time_delay - time_since_last
+                
+                # Update last visit time (assuming we will download it now)
+                # We add the wait time to the current time to "reserve" the next slot
+                self.frontier.last_visit[domain] = curr_time + wait_time
+
+            if wait_time > 0:
+                time.sleep(wait_time)
+
             resp = download(tbd_url, self.config, self.logger)
             self.logger.info(
                 f"Downloaded {tbd_url}, status <{resp.status}>, "
@@ -31,4 +56,3 @@ class Worker(Thread):
             for scraped_url in scraped_urls:
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
-            time.sleep(self.config.time_delay)
