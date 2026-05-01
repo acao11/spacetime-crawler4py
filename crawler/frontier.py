@@ -7,6 +7,16 @@ from queue import Queue, Empty
 from utils import get_logger, get_urlhash, normalize
 from scraper import is_valid
 
+import sqlite3
+
+_original_connect = sqlite3.connect
+
+def _patched_connect(*args, **kwargs):
+    kwargs['check_same_thread'] = False
+    return _original_connect(*args, **kwargs)
+
+sqlite3.connect = _patched_connect
+
 class Frontier(object):
     def __init__(self, config, restart):
         self.logger = get_logger("FRONTIER")
