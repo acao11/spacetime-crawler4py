@@ -48,7 +48,7 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
-            + r"|war|conf|sql|java|php|py|c|cpp|h|sh)$", parsed.path.lower()):
+            + r"|war|conf|sql|java|php|py|c|cpp|h|sh|ical)$", parsed.path.lower()):
             return False
 
         # --- Crawler Trap Check ---
@@ -57,8 +57,11 @@ def is_valid(url):
         # /attachment/ contains junk files (WAR, CONF, etc.)
         # /browser/ is an infinite source code browser
         # /timeline/ is an infinite history list
-        # We also block common auth/login paths to avoid getting stuck on login screens.
-        if any(trap in parsed.path.lower() for trap in ["/attachment/", "/browser/", "/timeline/", "/action/", "/login", "/logout", "/auth", "/signup"]):
+        # We also block common auth/login paths to avoid getting stuck on login screens. 
+        if any(trap in parsed.path.lower() for trap in [
+            "/attachment/", "/browser/", "/timeline/", "/action/", "/login", "/logout", "/auth", 
+            "/signup", "doku.php", "/zip-attachment/", "/raw-attachment/", "wp-admin", "wp-login"
+        ]):
             return False
 
         # 2. Repeating Directory Pattern
