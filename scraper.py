@@ -36,7 +36,7 @@ def is_valid(url):
         if parsed.scheme not in set(["http", "https"]):
             return False
         #Domain check
-        if parsed.netloc not in Allowed_Domains:
+        if not any(parsed.netloc == d or parsed.netloc.endswith('.' + d) for d in Allowed_Domains):
             return False
         #Extension check
         if re.match(
