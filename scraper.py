@@ -47,12 +47,44 @@ def is_valid(url):
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
-            + r"|rm|smil|wmv|swf|wma|zip|rar|gz)$", parsed.path.lower()):
+            + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
+            + r"|war|conf|sql|java|php|py|c|cpp|h|sh)$", parsed.path.lower()):
             return False
 
-        #Crawler Trap check
-        path_parts = [p for p in parsed.path.split("/") if p]
-        if len(path_parts) != len(set(path_parts)):
+        # --- Crawler Trap Check ---
+
+        # 1. Wiki/Trac Specific Traps (like grape.ics.uci.edu)
+        # /attachment/ contains junk files (WAR, CONF, etc.)
+        # /browser/ is an infinite source code browser
+        # /timeline/ is an infinite history list
+        # We also block common auth/login paths to avoid getting stuck on login screens.
+        if any(trap in parsed.path.lower() for trap in ["/attachment/", "/browser/", "/timeline/", "/action/", "/login", "/logout", "/auth", "/signup"]):
+            return False
+
+        # 2. Repeating Directory Pattern
+        # Some traps look like /news/news/news/news/... 
+        # We split the path by '/' and check if any folder name appears more than twice.
+        path_segments = [seg for seg in parsed.path.split('/') if seg]
+        if len(path_segments) > 0:
+            from collections import Counter
+            counts = Counter(path_segments)
+            if any(count > 2 for count in counts.values()):
+                return False
+
+        # 3. Dangerous Query Parameters (Wiki/Calendar Traps)
+        # These parameters often create infinite variations of the same content.
+        # 'do' (wiki actions), 'rev' (history), 'replytocom' (comment loops)
+        # 'idx' is a DokuWiki index trap.
+        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx"}
+        query_parts = parsed.query.lower().split('&')
+        for part in query_parts:
+            param_name = part.split('=')[0]
+            if param_name in trap_params:
+                return False
+
+        # 4. Path Length Heuristic
+        # Extremely long paths are rarely legitimate content and often signify a trap.
+        if len(url) > 200:
             return False
 
         return True
