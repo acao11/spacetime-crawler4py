@@ -63,6 +63,10 @@ def is_valid(url):
             "/signup", "doku.php", "/zip-attachment/", "/raw-attachment/", "wp-admin", "wp-login"
         ]):
             return False
+        
+        # Calendar URL trap
+        if re.search(r"/day/\d{4}-\d{2}-\d{2}", parsed.path.lower()):
+            return False
 
         # 2. Repeating Directory Pattern
         # Some traps look like /news/news/news/news/... 
