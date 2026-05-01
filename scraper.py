@@ -51,7 +51,9 @@ def is_valid(url):
             return False
 
         #Crawler Trap check
-        #??
+        path_parts = [p for p in parsed.path.split("/") if p]
+        if len(path_parts) != len(set(path_parts)):
+            return False
 
         return True
     except TypeError:
