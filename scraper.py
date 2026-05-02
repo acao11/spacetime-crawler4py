@@ -60,7 +60,11 @@ def is_valid(url):
         # We also block common auth/login paths to avoid getting stuck on login screens. 
         if any(trap in parsed.path.lower() for trap in [
             "/attachment/", "/browser/", "timeline", "/action/", "/login", "/logout", "/auth", 
-            "/signup", "doku.php", "/zip-attachment/", "/raw-attachment/", "wp-admin", "wp-login"
+            "/signup", "doku.php", "/zip-attachment", "/raw-attachment/", "wp-admin", "wp-login", ?action=", 
+            "?do=", "mediamanager.php", "?idx=", "wp-login.php", "?replytocom=", "?redirect_to=", "?version=", "?timeline", 
+            "?format=","/commit/", "/tree/", "/blob/", "/merge_requests/", 
+            "?view=", "/branches", "/tags", "/commits/",
+            "attachment",
         ]):
             return False
         
