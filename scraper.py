@@ -48,7 +48,7 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
-            + r"|war|conf|sql|java|php|py|c|cpp|h|sh|ical)$", parsed.path.lower()):
+            + r"|war|conf|sql|java|php|py|c|cpp|h|sh|ical|mpg)$", parsed.path.lower()):
             return False
 
         # --- Crawler Trap Check ---
@@ -60,7 +60,7 @@ def is_valid(url):
         # We also block common auth/login paths to avoid getting stuck on login screens. 
         if any(trap in parsed.path.lower() for trap in [
             "/attachment/", "/browser/", "timeline", "/action/", "/login", "/logout", "/auth", 
-            "/signup", "doku.php", "/zip-attachment", "/raw-attachment/", "wp-admin", "wp-login", ?action=", 
+            "/signup", "doku.php", "/zip-attachment", "/raw-attachment/", "wp-admin", "wp-login", "?action=", 
             "?do=", "mediamanager.php", "?idx=", "wp-login.php", "?replytocom=", "?redirect_to=", "?version=", "?timeline", 
             "?format=","/commit/", "/tree/", "/blob/", "/merge_requests/", 
             "?view=", "/branches", "/tags", "/commits/",
