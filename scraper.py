@@ -51,16 +51,26 @@ def extract_next_links(url, resp):
 def is_valid(url):
     # Decide whether to crawl this url or not. 
     # If you decide to crawl it, return True; otherwise return False.
-    # There are already some conditions that return False.
     try:
         parsed = urlparse(url)
-        #Http check
+        # 1. Basic Protocol & Domain Checks
         if parsed.scheme not in set(["http", "https"]):
             return False
+<<<<<<< HEAD
         #Domain check
         if parsed.netloc not in Allowed_Domains:
+=======
+        if not any(parsed.netloc == d or parsed.netloc.endswith('.' + d) for d in Allowed_Domains):
+>>>>>>> 864fb57 (fixed some checks,)
             return False
-        #Extension check
+            
+        # 2. Low Information Value Families
+        # mailman contains thousands of email list pages with very little unique content
+        if "mailman.ics.uci.edu" in parsed.netloc.lower():
+            return False
+
+        path_lower = parsed.path.lower()
+        # 3. Extension check (Block non-HTML files)
         if re.match(
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
@@ -70,70 +80,67 @@ def is_valid(url):
             + r"|epub|dll|cnf|tgz|sha1|ipynb"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
-            + r"|war|conf|sql|java|php|py|c|cpp|h|sh|mpg)$", parsed.path.lower()):
+            + r"|war|conf|sql|java|php|py|c|cpp|h|sh|mpg)$", path_lower):
             return False
 
-        # Crawler Trap Check
-
-        # Wiki Trap - More robust check
-        path_lower = parsed.path.lower()
-        traps = ["/attachment/", "/browser/", "/timeline", "/action/", "/login", "/logout", "/auth", "/signup"]
-        if any(trap in path_lower for trap in traps):
-            return False
-
-        # 3. Structural Traps
+        # 4. Structural Traps (Proactive Heuristics)
+        path_segments = [seg for seg in path_lower.split('/') if seg]
+        query_parts = [p for p in parsed.query.lower().split('&') if p]
+        
         # a) Depth Limit: Paths that are too deep (more than 10 levels) are usually traps
-        path_segments = [seg for seg in parsed.path.split('/') if seg]
         if len(path_segments) > 10:
             return False
 
         # b) Query Complexity: URLs with too many params are usually dynamic traps
-        query_parts = parsed.query.lower().split('&')
-        if len([p for p in query_parts if p]) > 3:
+        if len(query_parts) > 3:
             return False
 
-        # c) Repeating Directory Pattern
-        #/news/news/news/news/
+        # c) Repeating Directory Pattern (e.g., /news/news/news/)
         if len(path_segments) > 0:
             counts = Counter(path_segments)
             if any(count > 2 for count in counts.values()):
                 return False
 
-        # d) Known Trap Parameters (Specific block for dynamic views)
-        trap_params = {"tribe-bar-date", "eventdisplay", "outlook-ical", "share", "replytocom", "afg", "ical"}
+        # 5. Targeted Traps (Reactive Rules)
+        # a) Wiki & Utility Traps
+        traps = [
+            "/attachment/", "/browser/", "/timeline", "/action/", "/login", "/logout", 
+            "/auth", "/signup", "/password", "/helpdesk", "/swiki", "/gitlab"
+        ]
+        if any(trap in path_lower for trap in traps):
+            return False
+
+        # b) Known Trap Parameters (Wiki versions, Sorting, Filters)
+        trap_params = {
+            "tribe-bar-date", "eventdisplay", "outlook-ical", "share", "replytocom", 
+            "afg", "ical", "from", "version", "format", "rev", "C", "O", "M", "S", 
+            "P", "sort", "order", "filter"
+        }
         for part in query_parts:
             param_name = part.split('=')[0]
             if param_name in trap_params:
                 return False
 
-        # 4. Dynamic Event/Calendar Path Traps
-        # Blocks paths with dates like /2025-10 or /2025-10-15
-        if "/events/" in path_lower:
-            if any(x in path_lower for x in ["/day/", "/list/"]) or re.search(r'/\d{4}-\d{2}', path_lower):
+        # c) Dynamic Event/Calendar Paths (Stop infinite date loops)
+        if any(x in path_lower for x in ["/events/", "/calendar/", "/schedule/"]):
+            if any(x in path_lower for x in ["/day/", "/list/", "/month/", "/week/"]) or re.search(r'/\d{4}-\d{2}', path_lower):
                 return False
-        
-        # 5. Low Information Value Families
-        # mailman contains thousands of email list pages with very little unique content
-        if "mailman.ics.uci.edu" in parsed.netloc.lower():
-            return False
 
-        # 6. Path Length Check
-        if len(url) > 200:
-            return False
-
-        # 7. Pagination Trap Check (Limit to 50 pages)
+        # 6. Pagination Trap Check (Limit to 50 pages)
         # Check path (e.g., /page/194)
         page_match = re.search(r'/page/(\d+)', path_lower)
-        if page_match:
-            if int(page_match.group(1)) > 50:
-                return False
+        if page_match and int(page_match.group(1)) > 50:
+            return False
         
         # Check query (e.g., ?page=205, ?p=205)
         for part in query_parts:
             match = re.search(r'^(?:page|p)=(\d+)', part)
-            if match:
-                if int(match.group(1)) > 50:
-                    return False
+            if match and int(match.group(1)) > 50:
+                return False
+
+        # 7. Final Path Length Check
+        if len(url) > 200:
+            return False
 
         return True
     except TypeError:
