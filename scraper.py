@@ -15,14 +15,25 @@ def extract_next_links(url, resp):
     if resp.status != 200 or resp.raw_response is None:
         return []
     try:
-        soup = BeautifulSoup(resp.raw_response.content, "lxml")
+        content = resp.raw_response.content
+        soup = BeautifulSoup(content, "lxml")
         
         # --- Update Stats ---
-        # Extract text content for tokenization
         text = soup.get_text()
         tokens = tokenize(text)
         tracker.update_stats(url, tokens)
+
+        # --- Content-Aware Filtering (Trap Detection) ---
+        # 1. Skip links from massive pages with very little text (e.g., big data files)
+        if len(content) > 1_000_000 and len(tokens) < 200:
+            return []
         
+        # 2. Skip links from repetitive traps (Long pages with low unique word ratio)
+        if len(tokens) > 2000:
+            unique_ratio = len(set(tokens)) / len(tokens)
+            if unique_ratio < 0.1: # Less than 10% unique words
+                return []
+
         # --- Extract Links ---
         links = []
         for tag in soup.find_all("a", href=True):
@@ -53,12 +64,12 @@ def is_valid(url):
             r".*\.(css|js|bmp|gif|jpe?g|ico"
             + r"|png|tiff?|mid|mp2|mp3|mp4"
             + r"|wav|avi|mov|mpeg|ram|m4v|mkv|ogg|ogv|pdf"
-            + r"|ps|eps|tex|ppt|pptx|doc|docx|xls|xlsx|names"
+            + r"|ps|eps|tex|ppt|pptx|ppsx|doc|docx|xls|xlsx|names"
             + r"|data|dat|exe|bz2|tar|msi|bin|7z|psd|dmg|iso"
-            + r"|epub|dll|cnf|tgz|sha1"
+            + r"|epub|dll|cnf|tgz|sha1|ipynb"
             + r"|thmx|mso|arff|rtf|jar|csv"
             + r"|rm|smil|wmv|swf|wma|zip|rar|gz"
-            + r"|war|conf|sql|java|php|py|c|cpp|h|sh)$", parsed.path.lower()):
+            + r"|war|conf|sql|java|php|py|c|cpp|h|sh|mpg)$", parsed.path.lower()):
             return False
 
         # Crawler Trap Check
@@ -79,19 +90,40 @@ def is_valid(url):
             if any(count > 2 for count in counts.values()):
                 return False
 
-        # 2.Wiki/Calendar Traps
+        # 2.Wiki/Calendar/Sorting Traps
      
-        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx", "from"}
+        trap_params = {
+            "do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", 
+            "idx", "from", "c", "o", "tribe-bar-date", "eventdisplay", "outlook-ical"
+        }
         query_parts = parsed.query.lower().split('&')
         for part in query_parts:
             param_name = part.split('=')[0]
             if param_name in trap_params:
                 return False
 
-        # 3. Path Length Check
+        # 3. Dynamic Event/Calendar Path Traps
+        if "/events/" in path_lower and any(x in path_lower for x in ["/day/", "/list/"]):
+            return False
+
+        # 4. Path Length Check
 
         if len(url) > 200:
             return False
+
+        # 4. Pagination Trap Check (Limit to 50 pages)
+        # Check path (e.g., /page/194)
+        page_match = re.search(r'/page/(\d+)', path_lower)
+        if page_match:
+            if int(page_match.group(1)) > 50:
+                return False
+        
+        # Check query (e.g., ?page=205, ?p=205)
+        for part in query_parts:
+            match = re.search(r'^(?:page|p)=(\d+)', part)
+            if match:
+                if int(match.group(1)) > 50:
+                    return False
 
         return True
     except TypeError:
