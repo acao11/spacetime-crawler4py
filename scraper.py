@@ -1,6 +1,7 @@
 import re
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup
+from collections import Counter
 from utils.stats import tracker
 from utils.tokenizer import tokenize
 
@@ -80,38 +81,47 @@ def is_valid(url):
         if any(trap in path_lower for trap in traps):
             return False
 
-        #  Repeating Directory Pattern
-        #/news/news/news/news/
-
+        # 3. Structural Traps
+        # a) Depth Limit: Paths that are too deep (more than 10 levels) are usually traps
         path_segments = [seg for seg in parsed.path.split('/') if seg]
+        if len(path_segments) > 10:
+            return False
+
+        # b) Query Complexity: URLs with too many params are usually dynamic traps
+        query_parts = parsed.query.lower().split('&')
+        if len([p for p in query_parts if p]) > 3:
+            return False
+
+        # c) Repeating Directory Pattern
+        #/news/news/news/news/
         if len(path_segments) > 0:
-            from collections import Counter
             counts = Counter(path_segments)
             if any(count > 2 for count in counts.values()):
                 return False
 
-        # 2.Wiki/Calendar/Sorting Traps
-     
-        trap_params = {
-            "do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", 
-            "idx", "from", "c", "o", "tribe-bar-date", "eventdisplay", "outlook-ical"
-        }
-        query_parts = parsed.query.lower().split('&')
+        # d) Known Trap Parameters (Specific block for dynamic views)
+        trap_params = {"tribe-bar-date", "eventdisplay", "outlook-ical", "share", "replytocom", "afg", "ical"}
         for part in query_parts:
             param_name = part.split('=')[0]
             if param_name in trap_params:
                 return False
 
-        # 3. Dynamic Event/Calendar Path Traps
-        if "/events/" in path_lower and any(x in path_lower for x in ["/day/", "/list/"]):
+        # 4. Dynamic Event/Calendar Path Traps
+        # Blocks paths with dates like /2025-10 or /2025-10-15
+        if "/events/" in path_lower:
+            if any(x in path_lower for x in ["/day/", "/list/"]) or re.search(r'/\d{4}-\d{2}', path_lower):
+                return False
+        
+        # 5. Low Information Value Families
+        # mailman contains thousands of email list pages with very little unique content
+        if "mailman.ics.uci.edu" in parsed.netloc.lower():
             return False
 
-        # 4. Path Length Check
-
+        # 6. Path Length Check
         if len(url) > 200:
             return False
 
-        # 4. Pagination Trap Check (Limit to 50 pages)
+        # 7. Pagination Trap Check (Limit to 50 pages)
         # Check path (e.g., /page/194)
         page_match = re.search(r'/page/(\d+)', path_lower)
         if page_match:
