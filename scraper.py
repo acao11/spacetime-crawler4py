@@ -59,7 +59,7 @@ def is_valid(url):
         # /timeline/ is an infinite history list
         # We also block common auth/login paths to avoid getting stuck on login screens. 
         if any(trap in parsed.path.lower() for trap in [
-            "/attachment/", "/browser/", "/timeline/", "/action/", "/login", "/logout", "/auth", 
+            "/attachment/", "/browser/", "timeline", "/action/", "/login", "/logout", "/auth", 
             "/signup", "doku.php", "/zip-attachment/", "/raw-attachment/", "wp-admin", "wp-login"
         ]):
             return False
@@ -85,12 +85,16 @@ def is_valid(url):
         # These parameters often create infinite variations of the same content.
         # 'do' (wiki actions), 'rev' (history), 'replytocom' (comment loops)
         # 'idx' is a DokuWiki index trap.
-        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx", "c", "o", "tribe-bar-date", "eventdisplay", "outlook-ical"}
-        query_parts = parsed.query.lower().split('&')
+        trap_params = {"do", "rev", "action", "share", "replytocom", "diff", "afg", "ical", "idx", "tribe-bar-date", "eventdisplay", "outlook-ical"}
+        query_parts = re.split(r'[&;]', parsed.query.lower())
         for part in query_parts:
             param_name = part.split('=')[0]
             if param_name in trap_params:
                 return False
+
+        # Skip file directory sort params
+        if re.search(r"[?&;](c|o)=", parsed.query.lower()):
+            return False
 
         # 4. Path Length Heuristic
         # Extremely long paths are rarely legitimate content and often signify a trap.
