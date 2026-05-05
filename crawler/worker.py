@@ -27,11 +27,10 @@ class Worker(Thread):
                 self.logger.info("Frontier is empty. Stopping Crawler.")
                 break
             
-            # Domain-Specific Politeness Logic
+            # Domain Politeness Check
             parsed = urlparse(tbd_url)
             domain = parsed.netloc
             
-            # Use the frontier's lock to coordinate domain access
             with self.frontier.lock:
                 if not hasattr(self.frontier, 'last_visit'):
                     self.frontier.last_visit = {}
@@ -44,8 +43,6 @@ class Worker(Thread):
                 if time_since_last < self.config.time_delay:
                     wait_time = self.config.time_delay - time_since_last
                 
-                # Update last visit time (assuming we will download it now)
-                # We add the wait time to the current time to "reserve" the next slot
                 self.frontier.last_visit[domain] = curr_time + wait_time
 
             if wait_time > 0:
@@ -60,7 +57,7 @@ class Worker(Thread):
                 self.frontier.add_url(scraped_url)
             self.frontier.mark_url_complete(tbd_url)
 
-            # Periodically save report (every 50 downloads per worker)
+            # Periodic Report Save (Every 50)
             self.download_count += 1
             if self.download_count % 50 == 0:
                 tracker.save_report("report.txt")

@@ -62,7 +62,8 @@ class Frontier(object):
         with self.lock:
             while True:
                 try:
-                    url = self.to_be_downloaded.pop()
+                    # BFS Order (Queue-like)
+                    url = self.to_be_downloaded.pop(0)
                     if is_valid(url):
                         return url
                 except IndexError:
