@@ -1,58 +1,58 @@
 --- CRAWLER REPORT ---
-1. Unique pages: 6881
-2. Longest page: https://grape.ics.uci.edu/wiki/public/raw-attachment/wiki/cs221-2019-spring-project2/Team2StressTest.txt (56882 words)
+1. Unique pages: 6822
+2. Longest page: https://cml.ics.uci.edu/category/aiml (16280 words)
 
 3. Top 50 words:
-   research: 13341
-   data: 12029
-   information: 10310
-   computer: 10230
-   uci: 9755
-   learning: 9328
+   research: 13614
+   data: 12035
+   information: 10414
+   computer: 10389
+   uci: 9809
+   learning: 9372
    ramesh: 8996
-   will: 8161
-   ics: 8063
-   science: 7772
-   search: 7766
-   university: 7763
-   events: 7469
-   students: 7350
-   current: 7066
-   us: 6933
-   systems: 6764
+   ics: 8121
+   science: 7839
+   university: 7796
+   search: 7732
+   will: 7701
+   events: 7398
+   students: 7376
+   systems: 7070
+   current: 7070
+   us: 6808
    jain: 6588
-   irvine: 6351
-   news: 6099
-   machine: 5751
-   computing: 5514
-   time: 5148
-   project: 5033
-   past: 4997
-   new: 4710
-   10: 4615
-   access: 4605
-   pdf: 4604
-   people: 4552
-   software: 4497
-   using: 4414
-   projects: 4402
-   models: 4392
+   irvine: 6407
+   news: 6085
+   machine: 5747
+   computing: 5687
+   software: 5395
+   project: 5022
+   past: 4934
+   time: 4932
+   new: 4705
+   pdf: 4640
+   10: 4544
+   people: 4497
+   models: 4480
+   projects: 4449
+   using: 4447
    dechter: 4341
-   2026: 4232
-   courses: 4086
-   home: 3990
-   years: 3964
-   one: 3943
-   student: 3923
-   based: 3848
-   contact: 3790
-   vision: 3761
-   2025: 3728
-   school: 3702
-   books: 3561
-   paper: 3510
-   first: 3457
-   2023: 3446
+   2026: 4224
+   courses: 4088
+   access: 3984
+   based: 3958
+   student: 3945
+   years: 3937
+   home: 3832
+   vision: 3777
+   contact: 3776
+   school: 3731
+   2025: 3716
+   one: 3628
+   paper: 3613
+   books: 3550
+   conference: 3499
+   companies: 3379
 
 4. Subdomains (ics.uci.edu):
    accessibility.ics.uci.edu, 6
@@ -68,7 +68,7 @@
    cloudberry.ics.uci.edu, 4
    cml.ics.uci.edu, 265
    code.ics.uci.edu, 14
-   computableplant.ics.uci.edu, 118
+   computableplant.ics.uci.edu, 117
    courselisting.ics.uci.edu, 2
    create.ics.uci.edu, 7
    cs.ics.uci.edu, 12
@@ -76,7 +76,7 @@
    dgillen.ics.uci.edu, 30
    ds4all.ics.uci.edu, 9
    duttgroup.ics.uci.edu, 101
-   dynamo.ics.uci.edu, 33
+   dynamo.ics.uci.edu, 32
    edgelab.ics.uci.edu, 7
    emj.ics.uci.edu, 40
    evoke.ics.uci.edu, 4
@@ -84,17 +84,17 @@
    flamingo.ics.uci.edu, 29
    fr.ics.uci.edu, 3
    futurehealth.ics.uci.edu, 177
-   grape.ics.uci.edu, 376
+   grape.ics.uci.edu, 283
    graphics.ics.uci.edu, 1
    hack.ics.uci.edu, 1
-   hobbes.ics.uci.edu, 11
+   hobbes.ics.uci.edu, 10
    hpi.ics.uci.edu, 5
    i-sensorium.ics.uci.edu, 5
    iasl.ics.uci.edu, 1
    icde2023.ics.uci.edu, 46
-   ics.uci.edu, 1183
+   ics.uci.edu, 1184
    industryshowcase.ics.uci.edu, 24
-   informatics.ics.uci.edu, 25
+   informatics.ics.uci.edu, 27
    informatics.uci.edu, 7
    ipubmed.ics.uci.edu, 1
    isg.ics.uci.edu, 227
@@ -115,11 +115,11 @@
    pepito.proteomics.ics.uci.edu, 5
    psearch.ics.uci.edu, 1
    radicle.ics.uci.edu, 1
-   riscit.ics.uci.edu, 1
+   riscit.ics.uci.edu, 3
    scale.ics.uci.edu, 7
    scratch.proteomics.ics.uci.edu, 4
-   seal.ics.uci.edu, 50
-   selectpro.proteomics.ics.uci.edu, 7
+   seal.ics.uci.edu, 47
+   selectpro.proteomics.ics.uci.edu, 6
    sherlock.ics.uci.edu, 7
    stairs.ics.uci.edu, 3
    stat.ics.uci.edu, 11
@@ -129,8 +129,8 @@
    tutoring.ics.uci.edu, 5
    unite.ics.uci.edu, 10
    vision.ics.uci.edu, 213
-   wics.ics.uci.edu, 364
+   wics.ics.uci.edu, 352
    www-db.ics.uci.edu, 25
    www.informatics.ics.uci.edu, 6
-   www.informatics.uci.edu, 16
+   www.informatics.uci.edu, 17
    xtune.ics.uci.edu, 6
